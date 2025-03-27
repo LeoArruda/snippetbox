@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -26,8 +27,7 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (int, e
 	// Write the SQL statement we want to execute. I've split it over two lines
 	// for readability (which is why it's surrounded with backquotes instead
 	// of normal double quotes).
-	stmt := `INSERT INTO snippets (title, content, created, expires)
-	VALUES(?, ?, current_timestamp, DATE(current_timestamp,'+? days'))`
+	stmt := fmt.Sprintf("INSERT INTO snippets (title, content, created, expires) VALUES('%s', '%s', current_timestamp, DATE(current_timestamp, '+%d days'))", title, content, expires)
 
 	// Use the Exec() method on the embedded connection pool to execute the
 	// statement. The first parameter is the SQL statement, followed by the
