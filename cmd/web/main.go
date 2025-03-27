@@ -2,9 +2,14 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
+
+type application struct {
+	logger *slog.Logger
+}
 
 func main() {
 
@@ -19,6 +24,14 @@ func main() {
 	// encountered during parsing the application will be terminated.
 	flag.Parse()
 
+	// Use the slog.New() function to initialize a new structured logger, which
+	// writes to the standard out stream and uses the default settings.
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	app := &application{
+		logger: logger,
+	}
+
 	mux := http.NewServeMux()
 
 	// Create a file server which serves files out of the "./ui/static" directory.
@@ -32,18 +45,22 @@ func main() {
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileserver))
 
 	// Register the other application routes as normal..
-	mux.HandleFunc("GET /{$}", home)
-	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
-	mux.HandleFunc("GET /snippet/create", snippetCreate)
-	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
+	mux.HandleFunc("GET /{$}", app.home)
+	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
+	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
+	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
 	// The value returned from the flag.String() function is a pointer to the flag
 	// value, not the value itself. So in this code, that means the addr variable
 	// is actually a pointer, and we need to dereference it (i.e. prefix it with
 	// the * symbol) before using it. Note that we're using the log.Printf()
 	// function to interpolate the address with the log message.
-	log.Printf("starting server on %s", *addr)
+
+	// Use the Info() method to log the starting server message at Info severity
+	// (along with the listen address as an attribute).
+	logger.Info("starting server", "addr", *addr)
 
 	err := http.ListenAndServe(*addr, mux)
-	log.Fatal(err)
+	logger.Error(err.Error())
+	os.Exit(1)
 }
