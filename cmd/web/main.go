@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/LeoArruda/snippetbox/internal/models"
 	_ "modernc.org/sqlite"
 )
 
 type application struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
 func main() {
@@ -46,7 +48,8 @@ func main() {
 	defer db.Close()
 
 	app := &application{
-		logger: logger,
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
 	// The value returned from the flag.String() function is a pointer to the flag
