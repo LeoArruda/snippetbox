@@ -27,7 +27,7 @@ func main() {
 	// variable. You need to call this *before* you use the addr variable
 	// otherwise it will always contain the default value of ":4000". If any errors are
 	// encountered during parsing the application will be terminated.
-	dsn := flag.String("db", "./snippetbox", "SQLite database name")
+	dsn := flag.String("db", "./snippetbox.db", "SQLite database name")
 	flag.Parse()
 
 	// Use the slog.New() function to initialize a new structured logger, which
