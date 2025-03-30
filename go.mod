@@ -6,6 +6,7 @@ require modernc.org/sqlite v1.36.2
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/go-playground/form/v4 v4.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/alice v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

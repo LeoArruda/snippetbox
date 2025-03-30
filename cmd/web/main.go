@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/LeoArruda/snippetbox/internal/models"
+	"github.com/go-playground/form/v4" // New import
 	_ "modernc.org/sqlite"
 )
 
@@ -16,6 +17,7 @@ type application struct {
 	logger        *slog.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	form.Decoder  *form.Decoder // New field
 }
 
 func main() {
@@ -56,10 +58,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	formDecoder := form.NewDecoder() // Initialize the form decoder
+
+
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:  formDecoder, // Add the decoder to the application struct
 	}
 
 	// The value returned from the flag.String() function is a pointer to the flag
