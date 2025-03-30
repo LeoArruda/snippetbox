@@ -7,6 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/alexedwards/scs/sqlite3store"
+	"github.com/alexedwards/scs/v2"
 
 	"github.com/LeoArruda/snippetbox/internal/models"
 	"github.com/go-playground/form/v4" // New import
@@ -14,10 +18,11 @@ import (
 )
 
 type application struct {
-	logger        *slog.Logger
-	snippets      *models.SnippetModel
-	templateCache map[string]*template.Template
-	formDecoder   *form.Decoder
+	logger         *slog.Logger
+	snippets       *models.SnippetModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -60,11 +65,21 @@ func main() {
 
 	formDecoder := form.NewDecoder() // Initialize the form decoder
 
+	// Use the scs.New() function to initialize a new session manager. Then we
+	// configure it to use our MySQL database as the session store, and set a
+	// lifetime of 12 hours (so that sessions automatically expire 12 hours
+	// after first being created).
+	sessionManager := scs.New()
+	sessionManager.Store = sqlite3store.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+	// And add the session manager to our application dependencies.
+
 	app := &application{
-		logger:        logger,
-		snippets:      &models.SnippetModel{DB: db},
-		templateCache: templateCache,
-		formDecoder:   formDecoder, // Add the decoder to the application struct
+		logger:         logger,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder, // Add the decoder to the application struct
+		sessionManager: sessionManager,
 	}
 
 	// The value returned from the flag.String() function is a pointer to the flag
