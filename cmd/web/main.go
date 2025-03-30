@@ -17,7 +17,7 @@ type application struct {
 	logger        *slog.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
-	form.Decoder  *form.Decoder // New field
+	formDecoder   *form.Decoder
 }
 
 func main() {
@@ -60,12 +60,11 @@ func main() {
 
 	formDecoder := form.NewDecoder() // Initialize the form decoder
 
-
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
-		formDecoder:  formDecoder, // Add the decoder to the application struct
+		formDecoder:   formDecoder, // Add the decoder to the application struct
 	}
 
 	// The value returned from the flag.String() function is a pointer to the flag
