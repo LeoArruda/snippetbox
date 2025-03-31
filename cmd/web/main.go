@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -73,6 +74,11 @@ func main() {
 	sessionManager.Store = sqlite3store.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
 	// And add the session manager to our application dependencies.
+	// Make sure that the Secure attribute is set on our session cookies.
+	// Setting this means that the cookie will only be sent by a user's web
+	// browser when a HTTPS connection is being used (and won't be sent over an
+	// unsecure HTTP connection).
+	sessionManager.Cookie.Secure = true
 
 	app := &application{
 		logger:         logger,
@@ -80,6 +86,14 @@ func main() {
 		templateCache:  templateCache,
 		formDecoder:    formDecoder, // Add the decoder to the application struct
 		sessionManager: sessionManager,
+	}
+
+	// Initialize a tls.Config struct to hold the non-default TLS settings we
+	// want the server to use. In this case the only thing that we're changing
+	// is the curve preferences value, so that only elliptic curves with
+	// assembly implementations are used.
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
 	}
 
 	// Initialize a new http.Server struct. We set the Addr and Handler fields so
@@ -91,12 +105,13 @@ func main() {
 		// log entries at Error level, and assign it to the ErrorLog field. If
 		// you would prefer to log the server errors at Warn level instead, you
 		// could pass slog.LevelWarn as the final parameter.
-		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		ErrorLog:  slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig: tlsConfig,
 	}
 	logger.Info("starting server", "addr", srv.Addr)
 
 	// Use the ListenAndServe() method to start the server and listen for incoming
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	logger.Error(err.Error())
 	os.Exit(1)
 }
