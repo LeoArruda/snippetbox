@@ -82,16 +82,21 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
-	// The value returned from the flag.String() function is a pointer to the flag
-	// value, not the value itself. So in this code, that means the addr variable
-	// is actually a pointer, and we need to dereference it (i.e. prefix it with
-	// the * symbol) before using it. Note that we're using the log.Printf()
-	// function to interpolate the address with the log message.
+	// Initialize a new http.Server struct. We set the Addr and Handler fields so
+	// that the server uses the same network address and routes as before.
+	srv := &http.Server{
+		Addr:    *addr,
+		Handler: app.routes(),
+		// Create a *log.Logger from our structured logger handler, which writes
+		// log entries at Error level, and assign it to the ErrorLog field. If
+		// you would prefer to log the server errors at Warn level instead, you
+		// could pass slog.LevelWarn as the final parameter.
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+	logger.Info("starting server", "addr", srv.Addr)
 
-	// Use the Info() method to log the starting server message at Info severity
-	// (along with the listen address as an attribute).
-	logger.Info("starting server", "addr", *addr)
-	err = http.ListenAndServe(*addr, app.routes())
+	// Use the ListenAndServe() method to start the server and listen for incoming
+	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
