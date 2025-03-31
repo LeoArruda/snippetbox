@@ -18,7 +18,7 @@ type templateData struct {
 	Snippet     models.Snippet
 	Snippets    []models.Snippet
 	Form        any
-	flash       string
+	Flash       string
 }
 
 func (app *application) newTemplateData(r *http.Request) templateData {
