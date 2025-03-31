@@ -34,7 +34,7 @@ func (m *UserModel) Insert(name, email, password string) error {
 		return err
 	}
 	stmt := `INSERT INTO users (name, email, hashed_password, created)
-	VALUES(?, ?, ?, UTC_TIMESTAMP())`
+	VALUES(?, ?, ?, current_timestamp)`
 	// Use the Exec() method to insert the user details and hashed password
 	// into the users table.
 	_, err = m.DB.Exec(stmt, name, email, string(hashedPassword))
@@ -47,8 +47,9 @@ func (m *UserModel) Insert(name, email, password string) error {
 		// message string. If it does, we return an ErrDuplicateEmail error.
 		var SQLiteError *sqlite.Error
 		if errors.As(err, &SQLiteError) {
-			if errors.Is(sqliteError, sqlite.ConstraintError) && strings.Contains(sqliteError.Error(), "UNIQUE constraint failed: users.email") {
+			if strings.Contains(SQLiteError.Error(), "UNIQUE constraint failed: users.email") { //errors.Is(SQLiteError, sqlite3.ConstraintError) &&
 				return ErrDuplicateEmail
+			}
 		}
 		return err
 	}
