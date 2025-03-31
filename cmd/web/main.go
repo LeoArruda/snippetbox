@@ -83,6 +83,7 @@ func main() {
 	app := &application{
 		logger:         logger,
 		snippets:       &models.SnippetModel{DB: db},
+		users:          &models.UserModel{DB: db},
 		templateCache:  templateCache,
 		formDecoder:    formDecoder, // Add the decoder to the application struct
 		sessionManager: sessionManager,
@@ -107,6 +108,10 @@ func main() {
 		// could pass slog.LevelWarn as the final parameter.
 		ErrorLog:  slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		TLSConfig: tlsConfig,
+		// Add Idle, Read and Write timeouts to the server.
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 	logger.Info("starting server", "addr", srv.Addr)
 

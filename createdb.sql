@@ -10,6 +10,25 @@ expires DATETIME NOT NULL
 -- Add an index on the created column.
 CREATE INDEX idx_snippets_created ON snippets(created);
 
+-- Create table to store session data.
+CREATE TABLE sessions (
+token CHAR(43) PRIMARY KEY,
+data BLOB NOT NULL,
+expiry TIMESTAMP(6) NOT NULL
+);
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
+-- Create table to store user data.
+CREATE TABLE users (
+id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+name VARCHAR(255) NOT NULL,
+email VARCHAR(255) NOT NULL,
+hashed_password CHAR(60) NOT NULL,
+created DATETIME NOT NULL
+);
+
+ALTER TABLE users ADD CONSTRAINT users_uc_email UNIQUE (email);
+
 
 -- Add some dummy records (which we'll use in the next couple of chapters).
 INSERT INTO snippets (title, content, created, expires) VALUES (
