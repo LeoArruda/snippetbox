@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/LeoArruda/snippetbox/ui"
 	"github.com/justinas/alice"
 )
 
@@ -12,14 +13,10 @@ import (
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	fileServer := http.FileServer(http.Dir("./ui/static"))
+	mux.Handle("GET /static/", http.FileServerFS(ui.Files))
 
-	// Use the mux.Handle() function to register the file server as the handler for
-	// all URL paths that start with "/static/". For matching paths, we strip the
-	// "/static" prefix before the request reaches the file server.
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
+	//mux.HandleFunc("GET /ping", ping)
 
-	// Unprotected application routes using the "dynamic" middleware chain.
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
 	mux.Handle("GET /{$}", dynamic.ThenFunc(app.home))
@@ -29,8 +26,6 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /user/login", dynamic.ThenFunc(app.userLogin))
 	mux.Handle("POST /user/login", dynamic.ThenFunc(app.userLoginPost))
 
-	// Protected (authenticated-only) application routes, using a new "protected"
-	// middleware chain which includes the requireAuthentication middleware.
 	protected := dynamic.Append(app.requireAuthentication)
 
 	mux.Handle("GET /snippet/create", protected.ThenFunc(app.snippetCreate))
